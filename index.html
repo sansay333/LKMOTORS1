@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LKMOTORS ERP - V18</title>
+    <title>LKMOTORS ERP - V18.4 (FINAL)</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,15 +13,12 @@
         .tab-content { display: none; width: 100%; }
         .tab-content.active { display: flex; }
         .tab-content.active.block-mode { display: block; }
-        
-        /* [명세서 디자인 고정] */
         .bill-paper { background: white; color: black; padding: 30px; width: 210mm; min-height: 297mm; margin: 0 auto; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         .t-logic { width: 100%; border-collapse: collapse; border: 2px solid #000; table-layout: fixed; }
         .t-logic td, .t-logic th { border: 1px solid #000; padding: 5px; font-size: 11px; color: black; height: 32px; vertical-align: middle; }
         .bg-label { background: #f1f5f9; font-weight: 900; text-align: center; }
         .bg-header { background: #e2e8f0; font-weight: 900; text-align: center; font-size: 12px; }
         .input-clean { width: 100%; border: none; outline: none; font-weight: 700; background: transparent; color: black; }
-        
         @media screen and (max-width: 1024px) { 
             .bill-zoom { transform: scale(0.42); transform-origin: top left; width: 210mm; } 
             .scroll-box { overflow-x: auto; height: 750px; background: #1e293b; border-radius: 20px; padding: 10px; } 
@@ -60,18 +57,18 @@
     <main id="tab-rep" class="tab-content active p-2 lg:p-6 flex flex-col lg:flex-row gap-6">
         <aside class="w-full lg:w-80 no-print space-y-4 shrink-0">
             <div class="bg-slate-900 p-5 rounded-[30px] border border-blue-500/30 shadow-xl">
-                <h3 class="text-blue-400 font-black mb-3 italic">🔎 이력 조회 (기간 설정)</h3>
+                <h3 class="text-blue-400 font-black mb-3 italic">🔎 이력 조회</h3>
                 <input id="search-car" placeholder="차량번호" class="w-full p-3 bg-slate-800 rounded-xl border border-blue-500 uppercase mb-2 outline-none">
                 <div class="grid grid-cols-2 gap-1 mb-2">
                     <div class="flex flex-col"><span class="text-[9px] text-gray-500 px-1">시작일</span><input type="date" id="h-start" class="p-2 bg-slate-800 rounded-lg text-[10px] outline-none border border-white/5"></div>
                     <div class="flex flex-col"><span class="text-[9px] text-gray-500 px-1">종료일</span><input type="date" id="h-end" class="p-2 bg-slate-800 rounded-lg text-[10px] outline-none border border-white/5"></div>
                 </div>
-                <button onclick="loadPeriodHistory()" class="w-full py-2 bg-blue-600 rounded-xl font-bold text-xs">해당 기간 조회</button>
+                <button onclick="loadPeriodHistory()" class="w-full py-2 bg-blue-600 rounded-xl font-bold text-xs hover:bg-blue-500 transition">해당 기간 조회</button>
                 <div id="history-list" class="mt-3 space-y-1 max-h-40 overflow-y-auto pr-1"></div>
             </div>
 
             <div class="bg-slate-900 p-5 rounded-[30px] border border-white/10 shadow-xl">
-                <h3 class="text-emerald-400 font-black mb-3 italic text-sm">📝 신규 정비 등록</h3>
+                <h3 id="form-status-text" class="text-emerald-400 font-black mb-3 italic text-sm">📝 신규 정비 등록</h3>
                 <div class="space-y-2 text-[11px]">
                     <input id="db-car" placeholder="차량번호" class="w-full p-2 bg-slate-800 rounded-lg border border-emerald-500 uppercase font-bold outline-none">
                     <div class="grid grid-cols-2 gap-1">
@@ -84,11 +81,12 @@
                     </div>
                     <input id="db-chassis" placeholder="차대번호" class="w-full p-2 bg-slate-800 rounded-lg outline-none border border-white/5">
                     <div class="grid grid-cols-1 gap-1 border-t border-white/10 pt-2 font-mono">
-                        <div class="flex justify-between items-center text-[10px]"><span>입고일</span><input type="date" id="db-in" class="bg-slate-800 rounded p-1 outline-none"></div>
-                        <div class="flex justify-between items-center text-[10px] text-blue-400"><span>완료일</span><input type="date" id="db-comp" class="bg-slate-800 rounded p-1 outline-none"></div>
-                        <div class="flex justify-between items-center text-[10px] text-emerald-400"><span>출고일</span><input type="date" id="db-out" class="bg-slate-800 rounded p-1 outline-none"></div>
+                        <div class="flex justify-between items-center text-[10px]"><span>입고일</span><input type="date" id="db-in" class="bg-slate-800 rounded p-1 outline-none text-white"></div>
+                        <div class="flex justify-between items-center text-[10px] text-blue-400"><span>완료일</span><input type="date" id="db-comp" class="bg-slate-800 rounded p-1 outline-none text-white"></div>
+                        <div class="flex justify-between items-center text-[10px] text-emerald-400"><span>출고일</span><input type="date" id="db-out" class="bg-slate-800 rounded p-1 outline-none text-white"></div>
                     </div>
-                    <button onclick="saveAndSync()" class="w-full py-3 bg-emerald-600 rounded-xl font-black mt-2">정비 기록 저장</button>
+                    <button id="save-btn" onclick="saveAndSync()" class="w-full py-3 bg-emerald-600 rounded-xl font-black mt-2 transition-all">정비 기록 저장</button>
+                    <button id="cancel-edit-btn" onclick="resetToNewMode()" class="hidden w-full py-2 bg-slate-700 rounded-xl font-bold mt-1 text-xs">수정 취소 (신규 전환)</button>
                 </div>
             </div>
         </aside>
@@ -107,7 +105,6 @@
                             <td class="bg-label">차량등록일</td><td><input id="v-regdate" class="input-clean"></td>
                         </tr>
                     </table>
-                    
                     <table class="t-logic mt-6">
                         <thead>
                             <tr>
@@ -121,7 +118,6 @@
                         </thead>
                         <tbody id="bill-body"></tbody>
                     </table>
-                    
                     <div class="mt-12 flex justify-end">
                         <div class="w-72 border-4 border-black p-4 text-right">
                             <div class="text-[11px] font-bold">공급가액: <span id="v-sub">0</span></div>
@@ -138,26 +134,12 @@
         </div>
     </main>
 
-    <main id="tab-book" class="tab-content block-mode p-4 lg:p-10 max-w-4xl mx-auto">
-        <div class="bg-slate-900 rounded-[40px] p-8 border border-white/10 shadow-2xl">
-            <h2 class="text-2xl font-black text-blue-400 italic mb-8">📅 예약 관리</h2>
-            <div id="booking-list" class="space-y-3"></div>
-        </div>
-    </main>
-    <main id="tab-parts" class="tab-content block-mode p-4 lg:p-10 max-w-4xl mx-auto">
-        <div class="bg-slate-900 rounded-[40px] p-8 border border-white/10 shadow-2xl">
-            <h2 class="text-2xl font-black text-emerald-400 italic mb-8">📦 부품 재고</h2>
-            <div id="parts-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </div>
-    </main>
-    <main id="tab-admin" class="tab-content block-mode p-4 lg:p-10 max-w-2xl mx-auto">
-        <div class="bg-slate-900 rounded-[40px] p-8 border border-orange-500/30 shadow-2xl">
-            <h2 class="text-2xl font-black text-orange-400 italic mb-8">👑 승인 관리</h2>
-            <div id="wait-list" class="space-y-3"></div>
-        </div>
-    </main>
+    <main id="tab-book" class="tab-content block-mode p-4 lg:p-10 max-w-4xl mx-auto"><div class="bg-slate-900 rounded-[40px] p-8 border border-white/10 shadow-2xl"> <h2 class="text-2xl font-black text-blue-400 italic mb-8">📅 예약 관리</h2> <div id="booking-list" class="space-y-3"></div></div></main>
+    <main id="tab-parts" class="tab-content block-mode p-4 lg:p-10 max-w-4xl mx-auto"><div class="bg-slate-900 rounded-[40px] p-8 border border-white/10 shadow-2xl"> <h2 class="text-2xl font-black text-emerald-400 italic mb-8">📦 부품 재고</h2> <div id="parts-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div></main>
+    <main id="tab-admin" class="tab-content block-mode p-4 lg:p-10 max-w-2xl mx-auto"><div class="bg-slate-900 rounded-[40px] p-8 border border-orange-500/30 shadow-2xl"> <h2 class="text-2xl font-black text-orange-400 italic mb-8">👑 승인 관리</h2> <div id="wait-list" class="space-y-3"></div></div></main>
 
     <script>
+        // 파이어베이스 설정
         const firebaseConfig = {
             apiKey: "AIzaSyDhTPGNKNm38PSBdATs9lks0lYu52QrP3A",
             authDomain: "lkmotors-246f1.firebaseapp.com",
@@ -170,6 +152,9 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // 수정을 위해 필수적인 변수
+        let globalEditKey = null; // 현재 수정 중인 데이터의 고유 ID
+
         window.onload = function() {
             const savedId = localStorage.getItem('saved_lk_id');
             const savedPw = localStorage.getItem('saved_lk_pw');
@@ -179,8 +164,6 @@
                 document.getElementById('save-id').checked = true;
             }
             initRows();
-            
-            // 기본 날짜 설정 (오늘 기준)
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('h-end').value = today;
             const lastMonth = new Date(); lastMonth.setMonth(lastMonth.getMonth() - 1);
@@ -212,12 +195,11 @@
             document.getElementById('btn-'+id).classList.replace('bg-slate-800', 'bg-blue-600');
         }
 
-        // [이력 조회 핵심 로직: 차량번호 + 기간 필터]
+        // [이력 조회: 수정/삭제 버튼이 동적으로 생성됨]
         function loadPeriodHistory() {
             const car = document.getElementById('search-car').value.toUpperCase();
             const start = document.getElementById('h-start').value;
             const end = document.getElementById('h-end').value;
-            
             if(!car) return alert("차량번호를 입력해주세요.");
 
             db.ref('history/'+car).orderByChild('dateComp').startAt(start).endAt(end).on('value', s => {
@@ -225,29 +207,79 @@
                 if(!s.exists()) { list.innerHTML = "<p class='text-xs text-center text-gray-500 py-4'>내역이 없습니다.</p>"; return; }
                 
                 s.forEach(c => {
-                    list.innerHTML += `<div class="p-2.5 bg-slate-800 rounded-xl mb-1 text-[11px] flex justify-between items-center cursor-pointer border border-white/5 hover:border-blue-500" onclick="fillForm('${car}', '${c.key}')">
-                        <div>
-                            <span class="text-blue-400 font-bold block">${c.val().dateComp}</span>
-                            <span class="text-gray-400 text-[10px]">${c.val().type || '차종미기재'}</span>
+                    const d = c.val();
+                    list.innerHTML += `
+                    <div class="p-2.5 bg-slate-800 rounded-xl mb-1 text-[11px] flex justify-between items-center border border-white/5">
+                        <div class="cursor-pointer flex-1" onclick="fillFormForView('${car}', '${c.key}')">
+                            <span class="text-blue-400 font-bold block">${d.dateComp}</span>
+                            <span class="font-bold">₩${d.total}</span>
                         </div>
-                        <span class="font-bold">₩${c.val().total}</span>
+                        <div class="flex gap-1 no-print">
+                            <button onclick="prepareEdit('${car}', '${c.key}')" class="bg-amber-600 hover:bg-amber-500 px-2 py-1 rounded text-[10px] font-bold">수정</button>
+                            <button onclick="deleteHistoryRow('${car}', '${c.key}')" class="bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-[10px] font-bold">삭제</button>
+                        </div>
                     </div>`;
                 });
             });
         }
 
-        function fillForm(car, key) {
+        // [데이터 삭제 함수]
+        function deleteHistoryRow(car, key) {
+            if(confirm("이 정비 기록을 영구적으로 삭제하시겠습니까?")) {
+                db.ref('history/'+car+'/'+key).remove()
+                .then(() => alert("삭제되었습니다."))
+                .catch(e => alert("삭제 실패: " + e.message));
+            }
+        }
+
+        // [수정 준비: 입력창에 데이터 채우고 버튼 변경]
+        function prepareEdit(car, key) {
+            globalEditKey = key; // 현재 수정할 데이터의 키를 저장
+            db.ref('history/'+car+'/'+key).once('value', s => {
+                const d = s.val();
+                // 1. 왼쪽 폼 채우기
+                document.getElementById('db-car').value = car;
+                document.getElementById('db-name').value = d.name || "";
+                document.getElementById('db-phone').value = d.phone || "";
+                document.getElementById('db-type').value = d.type || "";
+                document.getElementById('db-regdate').value = d.regDate || "";
+                document.getElementById('db-chassis').value = d.chassis || "";
+                document.getElementById('db-in').value = d.dateIn || "";
+                document.getElementById('db-comp').value = d.dateComp || "";
+                document.getElementById('db-out').value = d.dateOut || "";
+                
+                // 2. 명세서 상단 채우기
+                document.getElementById('v-car').value = car;
+                document.getElementById('v-type').value = d.type || "";
+                document.getElementById('v-chassis').value = d.chassis || "";
+                document.getElementById('v-regdate').value = d.regDate || "";
+
+                // 3. UI 변경
+                document.getElementById('form-status-text').innerText = "🛠 기록 수정 모드";
+                document.getElementById('form-status-text').classList.replace('text-emerald-400', 'text-amber-400');
+                const saveBtn = document.getElementById('save-btn');
+                saveBtn.innerText = "수정 내용 반영 (업데이트)";
+                saveBtn.classList.replace('bg-emerald-600', 'bg-amber-600');
+                document.getElementById('cancel-edit-btn').classList.remove('hidden');
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        // [수정 취소 및 초기화]
+        function resetToNewMode() {
+            globalEditKey = null;
+            location.reload(); // 가장 확실한 초기화 방법
+        }
+
+        // [단순 조회용]
+        function fillFormForView(car, key) {
             db.ref('history/'+car+'/'+key).once('value', s => {
                 const d = s.val();
                 document.getElementById('v-car').value = car;
                 document.getElementById('v-type').value = d.type || "";
                 document.getElementById('v-chassis').value = d.chassis || "";
                 document.getElementById('v-regdate').value = d.regDate || "";
-                // 입력창에도 세팅
-                document.getElementById('db-car').value = car;
-                document.getElementById('db-type').value = d.type || "";
-                document.getElementById('db-regdate').value = d.regDate || "";
-                document.getElementById('db-chassis').value = d.chassis || "";
             });
         }
 
@@ -277,6 +309,7 @@
             document.getElementById('v-total').innerText = Math.floor(sub*1.1).toLocaleString();
         }
 
+        // [핵심 로직: 저장(push)과 수정(update)을 구분]
         function saveAndSync() {
             const car = document.getElementById('db-car').value.toUpperCase();
             const dateComp = document.getElementById('db-comp').value;
@@ -284,6 +317,7 @@
 
             const data = { 
                 name: document.getElementById('db-name').value, 
+                phone: document.getElementById('db-phone').value,
                 type: document.getElementById('db-type').value, 
                 regDate: document.getElementById('db-regdate').value,
                 chassis: document.getElementById('db-chassis').value, 
@@ -292,8 +326,23 @@
                 dateOut: document.getElementById('db-out').value,
                 total: document.getElementById('v-total').innerText 
             };
-            db.ref('history/'+car).push(data);
-            alert("저장되었습니다.");
+
+            if(globalEditKey) {
+                // 수정 모드: update() 사용
+                db.ref('history/'+car+'/'+globalEditKey).update(data)
+                .then(() => {
+                    alert("수정이 완료되었습니다.");
+                    resetToNewMode();
+                })
+                .catch(e => alert("수정 오류: " + e.message));
+            } else {
+                // 신규 모드: push() 사용
+                db.ref('history/'+car).push(data)
+                .then(() => {
+                    alert("성공적으로 저장되었습니다.");
+                    location.reload();
+                });
+            }
         }
 
         function loadAllData() {
@@ -306,7 +355,6 @@
                     </div>`;
                 });
             });
-            // 예약, 부품 로직은 기존과 동일...
         }
     </script>
 </body>
